@@ -1,3 +1,4 @@
+// const mongoose = require('mongoose');
 const User = require('../models/user.js');
 
 const getUsers = (req, res) => {
@@ -8,13 +9,13 @@ const getUsers = (req, res) => {
 
 const getUser = (req, res) => {
   User.findById(req.params.userId)
-  .orFail(() => {
-    throw new Error('Not found');
-  })
+  .orFail()
   .then(user => res.send({data: user}))
   .catch((e) => {
-    if (e.message === 'Not found') {
+    if (e.name === 'DocumentNotFoundError') {
       res.status(404).send({message: 'User not found'});
+    } else if (e.name === 'CastError') {
+      res.status(400).send({message: 'Used incorrect id'});
     } else {
       res.status(500).send({ message: 'Something went wrong' })
     }
@@ -35,7 +36,7 @@ const createUser = (req, res) => {
     }
   })
 };
- 
+
 const updateUserInfo = (req, res) => {
   const {name, about} = req.body;
 
@@ -43,15 +44,13 @@ const updateUserInfo = (req, res) => {
     new: true,
     runValidators: true
 })
-  .orFail(() => {
-    throw new Error('Not found');
-  })
+  .orFail()
   .then(user => res.status(200).send({data: user}))
   .catch((e) => {
     if (e.name === 'ValidationError') {
       const message = Object.values(e.errors).map(error => error.message).join('; ');
       res.status(400).send({message});
-    } else if (e.message === 'Not found') {
+    } else if (e.name === 'DocumentNotFoundError') {
       res.status(404).send({message: 'User not found'});
     } else {
       res.status(500).send({ message: 'Something went wrong' })
@@ -66,15 +65,13 @@ const updateUserAvatar = (req, res) => {
     new: true,
     runValidators: true
 })
-  .orFail(() => {
-    throw new Error('Not found');
-  })
+  .orFail()
   .then(user => res.status(200).send({data: user}))
   .catch((e) => {
     if (e.name === 'ValidationError') {
       const message = Object.values(e.errors).map(error => error.message).join('; ');
       res.status(400).send({message});
-    } else if (e.message === 'Not found') {
+    } else if (e.name === 'DocumentNotFoundError') {
       res.status(404).send({message: 'User not found'});
     }  else {
       res.status(500).send({ message: 'Something went wrong' })

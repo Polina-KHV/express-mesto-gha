@@ -23,13 +23,13 @@ const createCard = (req, res) => {
 
 const removeCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-  .orFail(() => {
-    throw new Error('Not found');
-  })
+  .orFail()
   .then(card => res.status(200).send({data: card}))
   .catch((e) => {
-    if (e.message === 'Not found') {
+    if (e.name === 'DocumentNotFoundError') {
       res.status(404).send({message: 'Card not found'});
+    } else if (e.name === 'CastError') {
+      res.status(400).send({message: 'Used incorrect id'});
     } else {
       res.status(500).send({ message: 'Something went wrong' })
     }
@@ -42,13 +42,13 @@ const likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-  .orFail(() => {
-    throw new Error('Not found');
-  })
+  .orFail()
   .then(card => res.status(200).send({data: card}))
   .catch((e) => {
-    if (e.message === 'Not found') {
+    if (e.name === 'DocumentNotFoundError') {
       res.status(404).send({message: 'Card not found'});
+    } else if (e.name === 'CastError') {
+      res.status(400).send({message: 'Used incorrect id'});
     } else {
       res.status(500).send({ message: 'Something went wrong' })
     }
@@ -61,13 +61,13 @@ const dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-  .orFail(() => {
-    throw new Error('Not found');
-  })
+  .orFail()
   .then(card => res.status(200).send({data: card}))
   .catch((e) => {
-    if (e.message === 'Not found') {
+    if (e.name === 'DocumentNotFoundError') {
       res.status(404).send({message: 'Card not found'});
+    } else if (e.name === 'CastError') {
+      res.status(400).send({message: 'Used incorrect id'});
     } else {
       res.status(500).send({ message: 'Something went wrong' })
     }
