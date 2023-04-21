@@ -1,16 +1,8 @@
-[![Tests](../../actions/workflows/tests-13-sprint.yml/badge.svg)](../../actions/workflows/tests-13-sprint.yml) [![Tests](../../actions/workflows/tests-14-sprint.yml/badge.svg)](../../actions/workflows/tests-14-sprint.yml)
-# Проект Mesto фронтенд + бэкенд
+# **Mesto-Backend-Express**
+## Student project for [Yandex Practicum](https://practicum.yandex.ru/)
 
+Here is the backend code for [Mesto](https://polina-khv.github.io/react-mesto-auth/). It consists functions that let receive cards and users from data base, create and edit them and remove cards.
 
-## Директории
+This student project is made with Express using MongoDB.
 
-`/routes` — папка с файлами роутера  
-`/controllers` — папка с файлами контроллеров пользователя и карточки   
-`/models` — папка с файлами описания схем пользователя и карточки  
-  
-Остальные директории вспомогательные, создаются при необходимости разработчиком
-
-## Запуск проекта
-
-`npm run start` — запускает сервер   
-`npm run dev` — запускает сервер с hot-reload
+To watch the project click [here](https://github.com/Polina-KHV/express-mesto-gha).
