@@ -1,13 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
-const { celebrate, isCelebrateError, errors } = require('celebrate');
+const { celebrate, errors } = require('celebrate');
 const { userFullInfoSchema } = require('./middlewares/user-validation');
 const auth = require('./middlewares/auth');
 const { login, createUser } = require('./controllers/users');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
-const BadRequestError = require('./errors/bad-request-error');
+// const BadRequestError = require('./errors/bad-request-error');
 const NotFoundError = require('./errors/not-found-error');
 
 const { PORT = 3000 } = process.env;
@@ -45,8 +45,9 @@ app.use((err, req, res, next) => {
         ? 'Something Went Wrong'
         : message,
     });
+  next();
 });
-// app.use(errors());
+app.use(errors());
 
 app.listen(PORT, () => {
   console.log('Server started on port', PORT);
