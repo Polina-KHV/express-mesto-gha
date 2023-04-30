@@ -1,17 +1,15 @@
 const Card = require('../models/card');
-const {
-  ERROR_INCORRECT,
-  ERROR_NOTFOUND,
-  ERROR_DEFAULT,
-} = require('../error-codes');
+const NotFoundError = require('../errors/not-found-error');
+const BadRequestError = require('../errors/bad-request-error');
+const ForbiddenError = require('../errors/forbidden-error');
 
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   Card.find()
     .then((cards) => res.send({ data: cards }))
-    .catch(() => res.status(ERROR_DEFAULT).send({ message: 'Something Went Wrong' }));
+    .catch(next);
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
@@ -19,29 +17,33 @@ const createCard = (req, res) => {
     .catch((e) => {
       if (e.name === 'ValidationError') {
         const message = Object.values(e.errors).map((error) => error.message).join('; ');
-        res.status(ERROR_INCORRECT).send({ message });
-      } else {
-        res.status(ERROR_DEFAULT).send({ message: 'Something Went Wrong' });
+        throw new BadRequestError({ message });
       }
-    });
+    })
+    .catch(next);
 };
 
-const removeCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+const removeCard = (req, res, next) => {
+  Card.findById(req.params.cardId)
     .orFail()
-    .then((card) => res.send({ data: card }))
+    .then((card) => {
+      if (card.owner !== req.user._id) {
+        throw new ForbiddenError('Can Remove Only Your Card');
+      }
+      card.remove();
+      res.send({ data: card });
+    })
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
-        res.status(ERROR_NOTFOUND).send({ message: 'Card Not Found' });
+        throw new NotFoundError('Card Not Found');
       } else if (e.name === 'CastError') {
-        res.status(ERROR_INCORRECT).send({ message: 'Used Incorrect Id' });
-      } else {
-        res.status(ERROR_DEFAULT).send({ message: 'Something Went Wrong' });
+        throw new BadRequestError('Used Incorrect Id');
       }
-    });
+    })
+    .catch(next);
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -51,16 +53,15 @@ const likeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
-        res.status(ERROR_NOTFOUND).send({ message: 'Card Not Found' });
+        throw new NotFoundError('Card Not Found');
       } else if (e.name === 'CastError') {
-        res.status(ERROR_INCORRECT).send({ message: 'Used Incorrect Id' });
-      } else {
-        res.status(ERROR_DEFAULT).send({ message: 'Something Went Wrong' });
+        throw new BadRequestError('Used Incorrect Id');
       }
-    });
+    })
+    .catch(next);
 };
 
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -70,13 +71,12 @@ const dislikeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
-        res.status(ERROR_NOTFOUND).send({ message: 'Card Not Found' });
+        throw new NotFoundError('Card Not Found');
       } else if (e.name === 'CastError') {
-        res.status(ERROR_INCORRECT).send({ message: 'Used Incorrect Id' });
-      } else {
-        res.status(ERROR_DEFAULT).send({ message: 'Something Went Wrong' });
+        throw new BadRequestError('Used Incorrect Id');
       }
-    });
+    })
+    .catch(next);
 };
 
 module.exports = {
