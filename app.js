@@ -30,15 +30,15 @@ app.use('*', (req, res, next) => {
   }
 });
 
-app.use((err, req, res, next) => {
-  try {
-    isCelebrateError(err);
-  } catch (e) {
-    const message = e.details.get('body').details.map((details) => details.message).join('; ');
-    throw new BadRequestError({ message });
-  }
-  return next(err);
-});
+// app.use((err, req, res, next) => {
+//   try {
+//     isCelebrateError(err);
+//   } catch (e) {
+//     const message = e.details.get('body').details.map((details) => details.message).join('; ');
+//     throw new BadRequestError({ message });
+//   }
+//   return next(err);
+// });
 app.use(errors());
 
 app.use((err, req, res) => {
