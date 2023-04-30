@@ -23,11 +23,7 @@ app.use('/users', auth, userRouter);
 app.use('/cards', auth, cardRouter);
 
 app.use('*', (req, res, next) => {
-  try {
-    throw new NotFoundError('Page Not Found');
-  } catch (err) {
-    next(err);
-  }
+  next(new NotFoundError('Page Not Found'));
 });
 
 // app.use((err, req, res, next) => {
@@ -39,9 +35,8 @@ app.use('*', (req, res, next) => {
 //   }
 //   return next(err);
 // });
-app.use(errors());
 
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
   res
     .status(statusCode)
@@ -51,6 +46,7 @@ app.use((err, req, res) => {
         : message,
     });
 });
+// app.use(errors());
 
 app.listen(PORT, () => {
   console.log('Server started on port', PORT);
