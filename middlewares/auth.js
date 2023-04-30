@@ -1,21 +1,18 @@
-const express = require('express');
-const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const UnauthorizedError = require('../errors/unauthorized-error');
-
-const app = express();
-app.use(cookieParser());
 
 const handleAuthError = () => {
   throw new UnauthorizedError('Authorization Required');
 };
 
 module.exports = (req, res, next) => {
-  if (!req.cookies.jwt) {
+  const { authorization } = req.headers;
+
+  if (!authorization || !authorization.startsWith('Bearer ')) {
     return handleAuthError();
   }
 
-  const token = req.cookies.jwt;
+  const token = authorization.replace('Bearer ', '');
   let payload;
 
   try {
