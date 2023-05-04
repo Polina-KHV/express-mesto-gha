@@ -12,8 +12,8 @@ const userSchema = new mongoose.Schema({
   },
   about: {
     type: String,
-    minlength: [2, 'About Length Must Be More Then 1'],
-    maxlength: [30, 'About Length Must Not Be More Then 30'],
+    minlength: [2, 'About Field Length Must Be More Then 1'],
+    maxlength: [30, 'About Field Length Must Not Be More Then 30'],
     default: 'Исследователь',
   },
   avatar: {
@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
       validator(url) {
-        const regex = /https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9$+-._~*:/?#[]@!&',;=()]/;
+        const regex = /https?:\/\/(?:www\.)?[-a-zA-Z0-9$+._~*:/?#[\]@!&',;=()]+/;
         return regex.test(url);
       },
       message: 'Please Enter A Valid Link',

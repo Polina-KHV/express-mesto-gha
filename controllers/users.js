@@ -7,11 +7,14 @@ const ConflictError = require('../errors/conflict-error');
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
-
   User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'secret-key', { expiresIn: '7d' });
-      res.send({ token });
+      res.cookie('jwt', token, {
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+      })
+        .end();
     })
     .catch((e) => {
       if (e.name === 'ValidationError') {
@@ -29,8 +32,8 @@ const getUsers = (req, res, next) => {
     .catch(next);
 };
 
-const getUser = (req, res, next) => {
-  User.findById(req.params.userId)
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
     .orFail()
     .then((user) => res.send({ data: user }))
     .catch((e) => {
@@ -43,8 +46,8 @@ const getUser = (req, res, next) => {
     .catch(next);
 };
 
-const getCurrentUser = (req, res, next) => {
-  User.findById(req.user._id)
+const getUser = (req, res, next) => {
+  User.findById(req.params.userId)
     .orFail()
     .then((user) => res.send({ data: user }))
     .catch((e) => {
@@ -131,8 +134,8 @@ const updateUserAvatar = (req, res, next) => {
 module.exports = {
   login,
   getUsers,
-  getUser,
   getCurrentUser,
+  getUser,
   createUser,
   updateUserInfo,
   updateUserAvatar,

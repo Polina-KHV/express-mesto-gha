@@ -24,13 +24,12 @@ const createCard = (req, res, next) => {
 };
 
 const removeCard = (req, res, next) => {
-  Card.findById(req.params.cardId)
+  Card.findByIdAndRemove(req.params.cardId)
     .orFail()
     .then((card) => {
-      if (card.owner !== req.user._id) {
+      if (card.owner.toString() !== req.user._id) {
         throw new ForbiddenError('Can Remove Only Your Card');
       }
-      card.remove();
       res.send({ data: card });
     })
     .catch((e) => {
