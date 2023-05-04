@@ -1,6 +1,6 @@
 const userRouter = require('express').Router();
 const { celebrate } = require('celebrate');
-const { userProfilInfoSchema, userAvatarSchema } = require('../middlewares/user-validation');
+const { userProfilInfoSchema, userAvatarSchema, userIdSchema } = require('../middlewares/user-validation');
 const {
   getUsers,
   getCurrentUser,
@@ -11,7 +11,7 @@ const {
 
 userRouter.get('/', getUsers);
 userRouter.get('/me', getCurrentUser);
-userRouter.get('/:userId', getUser);
+userRouter.get('/:userId', celebrate({ params: userIdSchema }), getUser);
 userRouter.patch('/me', celebrate({ body: userProfilInfoSchema }), updateUserInfo);
 userRouter.patch('/me/avatar', celebrate({ body: userAvatarSchema }), updateUserAvatar);
 

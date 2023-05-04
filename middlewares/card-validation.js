@@ -15,6 +15,13 @@ const cardSchema = Joi.object().keys({
   }),
 });
 
+const cardIdSchema = Joi.object().keys({
+  cardId: Joi.string().pattern(/^[0-9a-fA-F]{24}$/).messages({
+    'string.pattern.base': 'Please Enter A Valid Card Id',
+  }),
+});
+
 module.exports = {
   cardSchema,
+  cardIdSchema,
 };

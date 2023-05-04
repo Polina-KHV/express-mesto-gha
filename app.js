@@ -29,7 +29,12 @@ app.use('*', (req, res, next) => {
 
 app.use((err, req, res, next) => {
   if (isCelebrateError(err)) {
-    const message = err.details.get('body').details.map((details) => details.message).join('; ');
+    let message;
+    if (err.details.has('body')) {
+      message = err.details.get('body').details.map((details) => details.message).join('; ');
+    } else if (err.details.has('params')) {
+      message = err.details.get('params').details.map((details) => details.message).join('; ');
+    }
     throw new BadRequestError(message);
   }
   next(err);
