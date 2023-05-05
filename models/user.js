@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const isEmail = require('validator/lib/isEmail');
 const bcrypt = require('bcryptjs');
-const UnauthorizedError = require('../errors/unauthorized-error');
+const { regex } = require('../config/config');
+const { handleUnauthorizedError } = require('../utils/handleErrors');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -21,8 +22,8 @@ const userSchema = new mongoose.Schema({
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
       validator(url) {
-        const regex = /https?:\/\/(?:www\.)?[-a-zA-Z0-9$+._~*:/?#[\]@!&',;=()]+/;
-        return regex.test(url);
+        const reg = regex.url;
+        return reg.test(url);
       },
       message: 'Please Enter A Valid Link',
     },
@@ -47,13 +48,13 @@ userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        throw new UnauthorizedError('Wrong Email Or Password');
+        handleUnauthorizedError('Wrong Email Or Password');
       }
 
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            throw new UnauthorizedError('Wrong Email Or Password');
+            handleUnauthorizedError('Wrong Email Or Password');
           }
 
           return user;

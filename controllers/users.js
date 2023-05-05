@@ -1,15 +1,18 @@
+const { NODE_ENV, JWT_SECRET } = process.env;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const NotFoundError = require('../errors/not-found-error');
-const BadRequestError = require('../errors/bad-request-error');
-const ConflictError = require('../errors/conflict-error');
+const {
+  handleBadRequestError,
+  handleNotFoundError,
+  handleConflictError,
+} = require('../utils/handleErrors');
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
   User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'secret-key', { expiresIn: '7d' });
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
       res.cookie('jwt', token, {
         maxAge: 3600000 * 24 * 7,
         httpOnly: true,
@@ -19,7 +22,7 @@ const login = (req, res, next) => {
     .catch((e) => {
       if (e.name === 'ValidationError') {
         const message = Object.values(e.errors).map((error) => error.message).join('; ');
-        throw new BadRequestError({ message });
+        handleBadRequestError(message);
       }
       next(e);
     })
@@ -38,9 +41,7 @@ const getCurrentUser = (req, res, next) => {
     .then((user) => res.send({ data: user }))
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
-        throw new NotFoundError('User Not Found');
-      } else if (e.name === 'CastError') {
-        throw new BadRequestError('Used Incorrect Id');
+        handleNotFoundError('User Not Found');
       }
     })
     .catch(next);
@@ -52,9 +53,9 @@ const getUser = (req, res, next) => {
     .then((user) => res.send({ data: user }))
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
-        throw new NotFoundError('User Not Found');
+        handleNotFoundError('User Not Found');
       } else if (e.name === 'CastError') {
-        throw new BadRequestError('Used Incorrect Id');
+        handleBadRequestError('Used Incorrect Id');
       }
     })
     .catch(next);
@@ -65,23 +66,17 @@ const createUser = (req, res, next) => {
     name, about, avatar, email, password,
   } = req.body;
 
-  User.findOne({ email })
-    .then((user) => {
-      if (user) {
-        throw new ConflictError('User With This Email Already Exists');
-      }
-    })
-    .catch(next);
-
   bcrypt.hash(password, 10)
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
     .then((user) => res.status(201).send({ data: user }))
     .catch((e) => {
-      if (e.name === 'ValidationError') {
+      if (e.code === 11000) {
+        handleConflictError('User With This Email Already Exists');
+      } else if (e.name === 'ValidationError') {
         const message = Object.values(e.errors).map((error) => error.message).join('; ');
-        throw new BadRequestError({ message });
+        handleBadRequestError(message);
       }
     })
     .catch(next);
@@ -99,11 +94,9 @@ const updateUserInfo = (req, res, next) => {
     .catch((e) => {
       if (e.name === 'ValidationError') {
         const message = Object.values(e.errors).map((error) => error.message).join('; ');
-        throw new BadRequestError({ message });
-      } else if (e.name === 'CastError') {
-        throw new BadRequestError('Used Incorrect Id');
+        handleBadRequestError(message);
       } else if (e.name === 'DocumentNotFoundError') {
-        throw new NotFoundError('User Not Found');
+        handleNotFoundError('User Not Found');
       }
     })
     .catch(next);
@@ -121,11 +114,9 @@ const updateUserAvatar = (req, res, next) => {
     .catch((e) => {
       if (e.name === 'ValidationError') {
         const message = Object.values(e.errors).map((error) => error.message).join('; ');
-        throw new BadRequestError({ message });
-      } else if (e.name === 'CastError') {
-        throw new BadRequestError('Used Incorrect Id');
+        handleBadRequestError(message);
       } else if (e.name === 'DocumentNotFoundError') {
-        throw new NotFoundError('User Not Found');
+        handleNotFoundError('User Not Found');
       }
     })
     .catch(next);

@@ -1,10 +1,13 @@
 const Card = require('../models/card');
-const NotFoundError = require('../errors/not-found-error');
-const BadRequestError = require('../errors/bad-request-error');
-const ForbiddenError = require('../errors/forbidden-error');
+const {
+  handleBadRequestError,
+  handleNotFoundError,
+  handleForbiddenError,
+} = require('../utils/handleErrors');
 
 const getCards = (req, res, next) => {
   Card.find()
+    .populate(['owner', 'likes'])
     .then((cards) => res.send({ data: cards }))
     .catch(next);
 };
@@ -13,30 +16,35 @@ const createCard = (req, res, next) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
-    .then((card) => res.status(201).send({ data: card }))
+    .then((card) => {
+      card.populate(['owner', 'likes'])
+        .then(() => res.status(201).send({ data: card }));
+    })
     .catch((e) => {
       if (e.name === 'ValidationError') {
         const message = Object.values(e.errors).map((error) => error.message).join('; ');
-        throw new BadRequestError({ message });
+        handleBadRequestError(message);
       }
     })
     .catch(next);
 };
 
 const removeCard = (req, res, next) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
     .orFail()
     .then((card) => {
       if (card.owner.toString() !== req.user._id) {
-        throw new ForbiddenError('Can Remove Only Your Card');
+        handleForbiddenError('Can Remove Only Your Card');
       }
-      res.send({ data: card });
+      card.deleteOne();
+      card.populate(['owner', 'likes'])
+        .then(() => res.send({ data: card }));
     })
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
-        throw new NotFoundError('Card Not Found');
+        handleNotFoundError('Card Not Found');
       } else if (e.name === 'CastError') {
-        throw new BadRequestError('Used Incorrect Id');
+        handleBadRequestError('Used Incorrect Id');
       }
     })
     .catch(next);
@@ -49,12 +57,15 @@ const likeCard = (req, res, next) => {
     { new: true },
   )
     .orFail()
-    .then((card) => res.send({ data: card }))
+    .then((card) => {
+      card.populate(['owner', 'likes'])
+        .then(() => res.send({ data: card }));
+    })
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
-        throw new NotFoundError('Card Not Found');
+        handleNotFoundError('Card Not Found');
       } else if (e.name === 'CastError') {
-        throw new BadRequestError('Used Incorrect Id');
+        handleBadRequestError('Used Incorrect Id');
       }
     })
     .catch(next);
@@ -67,12 +78,15 @@ const dislikeCard = (req, res, next) => {
     { new: true },
   )
     .orFail()
-    .then((card) => res.send({ data: card }))
+    .then((card) => {
+      card.populate(['owner', 'likes'])
+        .then(() => res.send({ data: card }));
+    })
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
-        throw new NotFoundError('Card Not Found');
+        handleNotFoundError('Card Not Found');
       } else if (e.name === 'CastError') {
-        throw new BadRequestError('Used Incorrect Id');
+        handleBadRequestError('Used Incorrect Id');
       }
     })
     .catch(next);

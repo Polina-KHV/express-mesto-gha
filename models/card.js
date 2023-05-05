@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { regex } = require('../config/config');
 
 const cardSchema = new mongoose.Schema({
   name: {
@@ -12,8 +13,8 @@ const cardSchema = new mongoose.Schema({
     required: [true, 'Please Fill Card Link Field'],
     validate: {
       validator(url) {
-        const regex = /https?:\/\/(?:www\.)?[-a-zA-Z0-9$+._~*:/?#[\]@!&',;=()]+/;
-        return regex.test(url);
+        const reg = regex.url;
+        return reg.test(url);
       },
       message: 'Please Enter A Valid Link',
     },
