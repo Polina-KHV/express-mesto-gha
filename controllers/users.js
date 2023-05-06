@@ -3,10 +3,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const {
-  handleBadRequestError,
-  handleNotFoundError,
-  handleConflictError,
-} = require('../utils/handleErrors');
+  NotFoundError,
+  BadRequestError,
+  ConflictError,
+} = require('../config/errors');
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
@@ -18,13 +18,6 @@ const login = (req, res, next) => {
         httpOnly: true,
       })
         .end();
-    })
-    .catch((e) => {
-      if (e.name === 'ValidationError') {
-        const message = Object.values(e.errors).map((error) => error.message).join('; ');
-        handleBadRequestError(message);
-      }
-      next(e);
     })
     .catch(next);
 };
@@ -41,10 +34,9 @@ const getCurrentUser = (req, res, next) => {
     .then((user) => res.send({ data: user }))
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
-        handleNotFoundError('User Not Found');
+        next(new NotFoundError('User Not Found'));
       }
-    })
-    .catch(next);
+    });
 };
 
 const getUser = (req, res, next) => {
@@ -53,12 +45,11 @@ const getUser = (req, res, next) => {
     .then((user) => res.send({ data: user }))
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
-        handleNotFoundError('User Not Found');
-      } else if (e.name === 'CastError') {
-        handleBadRequestError('Used Incorrect Id');
+        next(new NotFoundError('User Not Found'));
+      } if (e.name === 'CastError') {
+        next(new BadRequestError('Used Incorrect Id'));
       }
-    })
-    .catch(next);
+    });
 };
 
 const createUser = (req, res, next) => {
@@ -73,13 +64,12 @@ const createUser = (req, res, next) => {
     .then((user) => res.status(201).send({ data: user }))
     .catch((e) => {
       if (e.code === 11000) {
-        handleConflictError('User With This Email Already Exists');
+        next(new ConflictError('User With This Email Already Exists'));
       } else if (e.name === 'ValidationError') {
         const message = Object.values(e.errors).map((error) => error.message).join('; ');
-        handleBadRequestError(message);
+        next(new BadRequestError(message));
       }
-    })
-    .catch(next);
+    });
 };
 
 const updateUserInfo = (req, res, next) => {
@@ -94,12 +84,11 @@ const updateUserInfo = (req, res, next) => {
     .catch((e) => {
       if (e.name === 'ValidationError') {
         const message = Object.values(e.errors).map((error) => error.message).join('; ');
-        handleBadRequestError(message);
+        next(new BadRequestError(message));
       } else if (e.name === 'DocumentNotFoundError') {
-        handleNotFoundError('User Not Found');
+        next(new NotFoundError('User Not Found'));
       }
-    })
-    .catch(next);
+    });
 };
 
 const updateUserAvatar = (req, res, next) => {
@@ -114,12 +103,11 @@ const updateUserAvatar = (req, res, next) => {
     .catch((e) => {
       if (e.name === 'ValidationError') {
         const message = Object.values(e.errors).map((error) => error.message).join('; ');
-        handleBadRequestError(message);
+        next(new BadRequestError(message));
       } else if (e.name === 'DocumentNotFoundError') {
-        handleNotFoundError('User Not Found');
+        next(new NotFoundError('User Not Found'));
       }
-    })
-    .catch(next);
+    });
 };
 
 module.exports = {

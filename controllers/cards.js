@@ -1,9 +1,9 @@
 const Card = require('../models/card');
 const {
-  handleBadRequestError,
-  handleNotFoundError,
-  handleForbiddenError,
-} = require('../utils/handleErrors');
+  NotFoundError,
+  BadRequestError,
+  ForbiddenError,
+} = require('../config/errors');
 
 const getCards = (req, res, next) => {
   Card.find()
@@ -23,10 +23,9 @@ const createCard = (req, res, next) => {
     .catch((e) => {
       if (e.name === 'ValidationError') {
         const message = Object.values(e.errors).map((error) => error.message).join('; ');
-        handleBadRequestError(message);
+        next(new BadRequestError(message));
       }
-    })
-    .catch(next);
+    });
 };
 
 const removeCard = (req, res, next) => {
@@ -34,20 +33,21 @@ const removeCard = (req, res, next) => {
     .orFail()
     .then((card) => {
       if (card.owner.toString() !== req.user._id) {
-        handleForbiddenError('Can Remove Only Your Card');
+        throw new ForbiddenError('Can Remove Only Your Card');
       }
-      card.deleteOne();
-      card.populate(['owner', 'likes'])
-        .then(() => res.send({ data: card }));
+      return card.deleteOne()
+        .then(() => {
+          card.populate(['owner', 'likes'])
+            .then(() => res.send({ data: card }));
+        });
     })
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
-        handleNotFoundError('Card Not Found');
+        next(new NotFoundError('Card Not Found'));
       } else if (e.name === 'CastError') {
-        handleBadRequestError('Used Incorrect Id');
-      }
-    })
-    .catch(next);
+        next(new BadRequestError('Used Incorrect Id'));
+      } else { next(e); }
+    });
 };
 
 const likeCard = (req, res, next) => {
@@ -63,12 +63,11 @@ const likeCard = (req, res, next) => {
     })
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
-        handleNotFoundError('Card Not Found');
+        next(new NotFoundError('Card Not Found'));
       } else if (e.name === 'CastError') {
-        handleBadRequestError('Used Incorrect Id');
+        next(new BadRequestError('Used Incorrect Id'));
       }
-    })
-    .catch(next);
+    });
 };
 
 const dislikeCard = (req, res, next) => {
@@ -84,12 +83,11 @@ const dislikeCard = (req, res, next) => {
     })
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
-        handleNotFoundError('Card Not Found');
+        next(new NotFoundError('Card Not Found'));
       } else if (e.name === 'CastError') {
-        handleBadRequestError('Used Incorrect Id');
+        next(new BadRequestError('Used Incorrect Id'));
       }
-    })
-    .catch(next);
+    });
 };
 
 module.exports = {

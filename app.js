@@ -8,7 +8,7 @@ const { userFullInfoSchema } = require('./middlewares/user-validation');
 const auth = require('./middlewares/auth');
 const { login, createUser } = require('./controllers/users');
 const { userRouter, cardRouter } = require('./routes');
-const { handleBadRequestError, handleNotFoundError } = require('./utils/handleErrors');
+const { NotFoundError, BadRequestError } = require('./config/errors');
 
 const app = express();
 
@@ -24,8 +24,7 @@ app.use('/users', auth, userRouter);
 app.use('/cards', auth, cardRouter);
 
 app.use('*', (req, res, next) => {
-  handleNotFoundError('Page Not Found');
-  next();
+  next(new NotFoundError('Page Not Found'));
 });
 
 app.use((err, req, res, next) => {
@@ -36,9 +35,8 @@ app.use((err, req, res, next) => {
     } else if (err.details.has('params')) {
       message = err.details.get('params').details.map((details) => details.message).join('; ');
     }
-    handleBadRequestError(message);
+    next(new BadRequestError(message));
   }
-  next(err);
 });
 
 app.use((err, req, res, next) => {
