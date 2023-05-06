@@ -35,6 +35,8 @@ const getCurrentUser = (req, res, next) => {
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
         next(new NotFoundError('User Not Found'));
+      } else {
+        next(e);
       }
     });
 };
@@ -46,8 +48,10 @@ const getUser = (req, res, next) => {
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
         next(new NotFoundError('User Not Found'));
-      } if (e.name === 'CastError') {
+      } else if (e.name === 'CastError') {
         next(new BadRequestError('Used Incorrect Id'));
+      } else {
+        next(e);
       }
     });
 };
@@ -68,6 +72,8 @@ const createUser = (req, res, next) => {
       } else if (e.name === 'ValidationError') {
         const message = Object.values(e.errors).map((error) => error.message).join('; ');
         next(new BadRequestError(message));
+      } else {
+        next(e);
       }
     });
 };
@@ -87,6 +93,8 @@ const updateUserInfo = (req, res, next) => {
         next(new BadRequestError(message));
       } else if (e.name === 'DocumentNotFoundError') {
         next(new NotFoundError('User Not Found'));
+      } else {
+        next(e);
       }
     });
 };
@@ -106,6 +114,8 @@ const updateUserAvatar = (req, res, next) => {
         next(new BadRequestError(message));
       } else if (e.name === 'DocumentNotFoundError') {
         next(new NotFoundError('User Not Found'));
+      } else {
+        next(e);
       }
     });
 };

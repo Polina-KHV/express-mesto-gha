@@ -36,6 +36,8 @@ app.use((err, req, res, next) => {
       message = err.details.get('params').details.map((details) => details.message).join('; ');
     }
     next(new BadRequestError(message));
+  } else {
+    next(err);
   }
 });
 

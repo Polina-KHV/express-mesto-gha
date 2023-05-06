@@ -24,6 +24,8 @@ const createCard = (req, res, next) => {
       if (e.name === 'ValidationError') {
         const message = Object.values(e.errors).map((error) => error.message).join('; ');
         next(new BadRequestError(message));
+      } else {
+        next(e);
       }
     });
 };
@@ -46,7 +48,9 @@ const removeCard = (req, res, next) => {
         next(new NotFoundError('Card Not Found'));
       } else if (e.name === 'CastError') {
         next(new BadRequestError('Used Incorrect Id'));
-      } else { next(e); }
+      } else {
+        next(e);
+      }
     });
 };
 
@@ -66,6 +70,8 @@ const likeCard = (req, res, next) => {
         next(new NotFoundError('Card Not Found'));
       } else if (e.name === 'CastError') {
         next(new BadRequestError('Used Incorrect Id'));
+      } else {
+        next(e);
       }
     });
 };
@@ -86,6 +92,8 @@ const dislikeCard = (req, res, next) => {
         next(new NotFoundError('Card Not Found'));
       } else if (e.name === 'CastError') {
         next(new BadRequestError('Used Incorrect Id'));
+      } else {
+        next(e);
       }
     });
 };
